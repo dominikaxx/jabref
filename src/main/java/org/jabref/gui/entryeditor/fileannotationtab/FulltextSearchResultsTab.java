@@ -114,7 +114,7 @@ public class FulltextSearchResultsTab extends EntryEditorTab {
         }
     }
 
-    private Text createFileLink(String pathToFile) {
+    Text createFileLink(String pathToFile) {
         LinkedFile linkedFile = new LinkedFile("", Path.of(pathToFile), "pdf");
         Text fileLinkText = new Text(Localization.lang("Found match in %0", pathToFile) + System.lineSeparator() + System.lineSeparator());
         fileLinkText.setStyle("-fx-font-weight: bold;");
@@ -137,7 +137,7 @@ public class FulltextSearchResultsTab extends EntryEditorTab {
         return fileLinkText;
     }
 
-    private Text createPageLink(int pageNumber) {
+    Text createPageLink(int pageNumber) {
         Text pageLink = new Text(Localization.lang("On page %0", pageNumber) + System.lineSeparator() + System.lineSeparator());
         pageLink.setStyle("-fx-font-style: italic; -fx-font-weight: bold;");
 

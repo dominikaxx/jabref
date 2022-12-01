@@ -1,6 +1,8 @@
 package org.jabref.gui.util;
 
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -12,8 +14,10 @@ import org.jabref.logic.util.StandardFileType;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.mockito.Mockito;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 class FileDialogConfigurationTest {
 
@@ -68,6 +72,102 @@ class FileDialogConfigurationTest {
         FileChooser.ExtensionFilter filter = toFilter(String.format("%1s %2s", "BibTex", Localization.lang("Library")), StandardFileType.BIBTEX_DB);
 
         assertEquals(filter.getExtensions(), fileDialogConfiguration.getDefaultExtension().getExtensions());
+    }
+
+    @Test
+    void testWithValidFileNameString() {
+        String initialFileName = "testFileName.txt";
+        FileDialogConfiguration fileDialogConfiguration = new FileDialogConfiguration.Builder()
+                .withInitialFileName(initialFileName).build();
+
+        assertEquals(initialFileName, fileDialogConfiguration.getInitialFileName());
+    }
+
+    @Test
+    void testWithNullDefaultExtension() {
+        FileDialogConfiguration fileDialogConfiguration = new FileDialogConfiguration.Builder()
+                .withDefaultExtension((FileChooser.ExtensionFilter) null).build();
+
+        assertNull(fileDialogConfiguration.getDefaultExtension());
+    }
+
+    @Test
+    void testWithStringDefaultExtension() {
+        String fileTypeDescription = "fileTypeDescriptionTest";
+        FileDialogConfiguration fileDialogConfiguration = new FileDialogConfiguration.Builder()
+                .withDefaultExtension(fileTypeDescription).build();
+
+        FileChooser.ExtensionFilter defaultExtension = new FileChooser.ExtensionFilter("TestDescription", "TestExtensions");
+        FileDialogConfiguration fileDialogConfiguration1 = Mockito.spy(fileDialogConfiguration);
+        Mockito.doReturn(defaultExtension).when(fileDialogConfiguration1).getDefaultExtension();
+
+        assertEquals(defaultExtension, fileDialogConfiguration1.getDefaultExtension());
+    }
+
+    @Test
+    void testWithStringDescriptionAndFileTypeDefaultExtension() {
+        String description = "description";
+        FileType fileType = StandardFileType.BIBTEX_DB;
+        FileDialogConfiguration fileDialogConfiguration = new FileDialogConfiguration.Builder()
+                .withDefaultExtension(description, fileType).build();
+
+        FileChooser.ExtensionFilter defaultExtension = FileFilterConverter.toExtensionFilter(description, fileType);
+        FileDialogConfiguration fileDialogConfiguration1 = Mockito.spy(fileDialogConfiguration);
+        Mockito.doReturn(defaultExtension).when(fileDialogConfiguration1).getDefaultExtension();
+
+        assertEquals(defaultExtension, fileDialogConfiguration1.getDefaultExtension());
+    }
+
+    @Test
+    void testWithExtensionFilterList() {
+        FileChooser.ExtensionFilter testFilter1 = new FileChooser.ExtensionFilter("TestDescription1", "TestExtensions1");
+        FileChooser.ExtensionFilter testFilter2 = new FileChooser.ExtensionFilter("TestDescription2", "TestExtensions2");
+        List<FileChooser.ExtensionFilter> extensionFilters = new ArrayList<>();
+        extensionFilters.add(testFilter1);
+        extensionFilters.add(testFilter2);
+        FileDialogConfiguration fileDialogConfiguration = new FileDialogConfiguration.Builder()
+                .addExtensionFilter(extensionFilters).build();
+
+        assertEquals(extensionFilters, fileDialogConfiguration.getExtensionFilters());
+    }
+
+    @Test
+    void testWithStringDescriptionAndFileType() {
+        String description = "description";
+        FileType fileType = StandardFileType.ISI;
+        FileDialogConfiguration fileDialogConfiguration = new FileDialogConfiguration.Builder()
+                .addExtensionFilter(description, fileType).build();
+
+        List<FileChooser.ExtensionFilter> extensionFilters = new ArrayList<>();
+        FileChooser.ExtensionFilter testFilter1 = new FileChooser.ExtensionFilter("TestDescription1", "TestExtensions1");
+        FileChooser.ExtensionFilter testFilter2 = new FileChooser.ExtensionFilter("TestDescription2", "TestExtensions2");
+        extensionFilters.add(testFilter1);
+        extensionFilters.add(testFilter2);
+        FileChooser.ExtensionFilter extensionFilter = FileFilterConverter.toExtensionFilter(description, fileType);
+        extensionFilters.add(extensionFilter);
+
+        FileDialogConfiguration fileDialogConfiguration1 = Mockito.spy(fileDialogConfiguration);
+        Mockito.doReturn(extensionFilters).when(fileDialogConfiguration1).getExtensionFilters();
+
+        assertEquals(extensionFilters, fileDialogConfiguration1.getExtensionFilters());
+    }
+
+    @Test
+    void testSetSelectedExtensionFilter() {
+        FileChooser.ExtensionFilter extensionFilter = new FileChooser.ExtensionFilter("TestDescription", "TestExtensions");
+        FileDialogConfiguration fileDialogConfiguration = new FileDialogConfiguration.Builder().build();
+        fileDialogConfiguration.setSelectedExtensionFilter(extensionFilter);
+
+        assertEquals(extensionFilter, fileDialogConfiguration.getSelectedExtensionFilter());
+    }
+
+    @Test
+    void testWithValidDirectoryPathCornerCase() {
+        Path tempFolder = Path.of("test/cornerCase/");
+        FileDialogConfiguration fileDialogConfiguration = new FileDialogConfiguration.Builder()
+                .withInitialDirectory(tempFolder).build();
+
+        assertEquals(Optional.empty(), fileDialogConfiguration.getInitialDirectory());
     }
 
     private FileChooser.ExtensionFilter toFilter(String description, FileType extension) {
